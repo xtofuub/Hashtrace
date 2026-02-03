@@ -16,7 +16,7 @@ Quickly fetch and analyze MD5, SHA-1, and SHA-256 hashes from VirusTotal, with b
 
 ## Installation
 
-1. Go to the [HashTrace Releases Page](https://github.com/xtofuub/Hashtrace/releases) and download the latest zip file.  
+1. Go to the [Releases Page](https://github.com/xtofuub/Hashtrace/releases) and download the latest zip file.  
 2. Extract the zip file to a folder.  
 3. Open Chrome/Brave and go to `chrome://extensions/`  
 4. Enable **Developer mode** (toggle in top right).  
