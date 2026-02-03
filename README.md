@@ -1,8 +1,10 @@
 ---
 
 # Hashtrace – VirusTotal Hash Fetcher Chrome Extension
+<img width="1476" height="825" alt="image" src="https://github.com/user-attachments/assets/bea68a8b-80ff-47ce-8f7f-038d8178717a" />
 
 Quickly fetch and analyze MD5, SHA-1, and SHA-256 hashes from VirusTotal, with both single and bulk input methods, all in a sleek, user-friendly interface.
+
 
 ## Features
 - ✨ **Single Hash Lookup** – Highlight any hash on a webpage and press `Ctrl+Shift+X`
