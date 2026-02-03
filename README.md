@@ -1,28 +1,27 @@
 ---
 
 # Hashtrace – VirusTotal Hash Fetcher Chrome Extension
-<img width="1476" height="825" alt="image" src="https://github.com/user-attachments/assets/bea68a8b-80ff-47ce-8f7f-038d8178717a" />
 
 Quickly fetch and analyze MD5, SHA-1, and SHA-256 hashes from VirusTotal, with both single and bulk input methods, all in a sleek, user-friendly interface.
 
-
 ## Features
-- ✨ **Single Hash Lookup** – Highlight any hash on a webpage and press `Ctrl+Shift+X`
-- 🔍 **Smart Detection** – Even if you highlight other text (or the whole page), HashTrace will automatically detect and extract valid hashes
-- 📋 **Bulk Hash Lookup** – Paste multiple hashes via the extension popup
-- 📊 **Results Dashboard** – Clean, organized page 
-- 💾 **Export Options** – Copy hashes or export results as JSON or CSV
 
+✨ **Single Hash Lookup** – Highlight any hash on a webpage and press `Ctrl+Shift+X`
+
+📋 **Bulk Hash Lookup** – Paste multiple hashes via the extension popup
+
+📊 **Results Dashboard** – Clean, organized page 
+
+💾 **Export Options** – Copy hashes or export results as JSON or CSV
 
 ## Installation
 
-1. Go to the [Releases Page](https://github.com/xtofuub/Hashtrace/releases) and download the latest zip file.  
-2. Extract the zip file to a folder.  
-3. Open Chrome/Brave and go to `chrome://extensions/`  
-4. Enable **Developer mode** (toggle in top right).  
-5. Click **Load unpacked** and select the extracted folder.  
-6. Click the extension icon → **Options**.  
-7. Enter your VirusTotal API key and save.
+1. Extract the zip file to a folder
+2. Open Chrome and go to `chrome://extensions/` 
+3. Enable **Developer mode** (toggle in top right)
+4. Click **Load unpacked** and select the extracted folder
+5. Click the extension icon → Options
+6. Enter your VirusTotal API key and save
 
 ## Get Your API Key
 
@@ -66,4 +65,3 @@ d634c9a618a48ce2b892b9992f7ccbd7
 * Hashtrace respects VirusTotal rate limits with automatic delays
 
 ---
-

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>VirusTotal Results</title>
+  <title>HashTrace Results</title>
   <link rel="stylesheet" href="theme.css">
   <style>
     body {
@@ -103,6 +103,15 @@
       white-space: nowrap;
       margin-right: 10px;
       color: var(--text-secondary);
+    }
+    
+    .hash-text.clickable {
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+    
+    .hash-text.clickable:hover {
+      color: var(--accent-primary);
     }
 
     .copy-btn {

@@ -23,10 +23,29 @@ function displayResults(results) {
   loadingDiv.style.display = 'none';
   bulkActions.style.display = 'flex';
 
-  // Calculate stats
-  const successful = results.filter(r => r.success).length;
-  const failed = results.filter(r => !r.success).length;
-  const maliciousResults = results.filter(r => r.success && r.data.last_analysis_stats.malicious > 0);
+  // Deduplicate successful results by canonical sha256 (fallback to md5)
+  const uniqueMap = new Map(); // key: sha256|md5 -> result
+  const uniqueResults = [];
+  let duplicatesFilesCount = 0;
+  const failedResults = [];
+  results.forEach(r => {
+    if (r.success && r.data) {
+      const key = (r.data.sha256 || r.data.md5 || '').toLowerCase();
+      if (key && !uniqueMap.has(key)) {
+        uniqueMap.set(key, r);
+        uniqueResults.push(r);
+      } else {
+        duplicatesFilesCount++;
+      }
+    } else {
+      failedResults.push(r);
+    }
+  });
+
+  // Calculate stats from unique successful results
+  const successful = uniqueResults.length;
+  const failed = failedResults.length;
+  const maliciousResults = uniqueResults.filter(r => r.data.last_analysis_stats.malicious > 0);
   const maliciousCount = maliciousResults.length;
   const cleanCount = successful - maliciousCount;
 
@@ -34,7 +53,11 @@ function displayResults(results) {
   statsText.innerHTML = `
     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
       <span style="color: var(--text-secondary);">Total Analyzed</span>
-      <strong>${results.length}</strong>
+      <strong>${uniqueResults.length + failedResults.length}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <span style="color: var(--text-secondary);">Same-File Duplicates</span>
+      <strong>${duplicatesFilesCount}</strong>
     </div>
     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
       <span style="color: var(--text-secondary);">Malicious</span>
@@ -74,16 +97,15 @@ function displayResults(results) {
   `;
 
   // Display each result
-  results.forEach((result, index) => {
-    if (result.success) {
-      resultsDiv.appendChild(createResultCard(result.data, index));
-    } else {
-      resultsDiv.appendChild(createErrorCard(result.hash, result.error, index));
-    }
+  uniqueResults.forEach((result, index) => {
+    resultsDiv.appendChild(createResultCard(result.data, index));
+  });
+  failedResults.forEach((result, index) => {
+    resultsDiv.appendChild(createErrorCard(result.hash, result.error, uniqueResults.length + index));
   });
 
   // Setup bulk actions
-  setupBulkActions(results);
+  setupBulkActions(uniqueResults);
 }
 
 function createResultCard(data, index) {
@@ -107,17 +129,17 @@ function createResultCard(data, index) {
     </div>
     
     <div class="hash-row">
-      <span class="hash-text">MD5: ${data.md5}</span>
+      <span class="hash-text clickable" data-hash="${data.md5}" title="Click to copy">MD5: ${data.md5}</span>
       <button class="copy-btn" data-hash="${data.md5}">COPY</button>
     </div>
     
     <div class="hash-row">
-      <span class="hash-text">SHA1: ${data.sha1}</span>
+      <span class="hash-text clickable" data-hash="${data.sha1}" title="Click to copy">SHA1: ${data.sha1}</span>
       <button class="copy-btn" data-hash="${data.sha1}">COPY</button>
     </div>
     
     <div class="hash-row">
-      <span class="hash-text">SHA256: ${data.sha256}</span>
+      <span class="hash-text clickable" data-hash="${data.sha256}" title="Click to copy">SHA256: ${data.sha256}</span>
       <button class="copy-btn" data-hash="${data.sha256}">COPY</button>
     </div>
     
@@ -136,6 +158,14 @@ function createResultCard(data, index) {
     });
   });
   
+  // Setup clickable hash spans
+  card.querySelectorAll('.hash-text.clickable').forEach(span => {
+    span.addEventListener('click', () => {
+      const hash = span.getAttribute('data-hash');
+      copyToClipboard(hash, span);
+    });
+  });
+  
   return card;
 }
 
@@ -145,25 +175,42 @@ function createErrorCard(hash, error, index) {
   card.style.borderColor = 'var(--error)';
   
   card.innerHTML = `
-    <div style="color: var(--error); font-weight: 600; margin-bottom: 8px;">
-      ❌ Failed to fetch: ${hash}
+    <div class="hash-row" style="border: 1px solid rgba(255, 23, 68, 0.3);">
+      <span class="hash-text clickable" data-hash="${hash}" style="color: var(--error);" title="Click to copy">❌ Failed to fetch: ${hash}</span>
     </div>
     <div style="font-size: 12px; color: var(--text-secondary);">${error}</div>
   `;
   
+  const span = card.querySelector('.hash-text.clickable');
+  if (span) {
+    span.addEventListener('click', () => {
+      copyToClipboard(hash, span);
+    });
+  }
+  
   return card;
 }
 
-function copyToClipboard(text, button) {
+function copyToClipboard(text, el) {
   navigator.clipboard.writeText(text).then(() => {
-    const originalText = button.textContent;
-    button.textContent = 'COPIED';
-    button.style.color = 'var(--success)';
-    
-    setTimeout(() => {
-      button.textContent = originalText;
-      button.style.color = '';
-    }, 2000);
+    if (el && el.tagName === 'BUTTON') {
+      const originalText = el.textContent;
+      el.textContent = 'COPIED';
+      el.style.color = 'var(--success)';
+      setTimeout(() => {
+        el.textContent = originalText;
+        el.style.color = '';
+      }, 2000);
+    } else if (el) {
+      const prevColor = el.style.color;
+      const prevTitle = el.getAttribute('title') || '';
+      el.style.color = 'var(--success)';
+      el.setAttribute('title', 'Copied');
+      setTimeout(() => {
+        el.style.color = prevColor;
+        el.setAttribute('title', prevTitle);
+      }, 1500);
+    }
   });
 }
 

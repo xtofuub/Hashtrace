@@ -72,12 +72,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "fetchMultipleHashes") {
     console.log("Fetching multiple hashes:", request.hashes);
 
-    fetchMultipleHashes(request.hashes)
+    const original = Array.isArray(request.hashes) ? request.hashes : [];
+    const unique = Array.from(new Set(original.map(h => h.toLowerCase())));
+    const dedupCount = original.length - unique.length;
+
+    fetchMultipleHashes(unique)
       .then(results => {
         console.log("Multiple hashes fetched successfully");
         const resultsData = encodeURIComponent(JSON.stringify(results));
         chrome.tabs.create({
-          url: chrome.runtime.getURL(`results.html?data=${resultsData}`)
+          url: chrome.runtime.getURL(`results.html?data=${resultsData}&dedup=${dedupCount}`)
         });
         sendResponse({ success: true });
       })

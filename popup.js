@@ -71,11 +71,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (invalidHashes.length > 0) {
-      statusDiv.textContent = `Warning: ${invalidHashes.length} invalid hash(es) skipped. Processing ${validHashes.length} valid hash(es)...`;
+    const uniqueValid = Array.from(new Set(validHashes.map(h => h.toLowerCase())));
+    const dedupCount = validHashes.length - uniqueValid.length;
+    if (invalidHashes.length > 0 || dedupCount > 0) {
+      const parts = [];
+      if (invalidHashes.length > 0) parts.push(`${invalidHashes.length} invalid`);
+      if (dedupCount > 0) parts.push(`${dedupCount} duplicate`);
+      statusDiv.textContent = `Warning: ${parts.join(' + ')} hash(es) skipped. Processing ${uniqueValid.length} valid unique hash(es)...`;
       statusDiv.className = 'status info';
     } else {
-      statusDiv.textContent = `Processing ${validHashes.length} hash(es)...`;
+      statusDiv.textContent = `Processing ${uniqueValid.length} hash(es)...`;
       statusDiv.className = 'status info';
     }
 
@@ -84,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Send message to background script to fetch all hashes
     chrome.runtime.sendMessage(
-      { action: 'fetchMultipleHashes', hashes: validHashes },
+      { action: 'fetchMultipleHashes', hashes: uniqueValid },
       (response) => {
         fetchBtn.disabled = false;
         fetchBtn.textContent = 'Fetch All Hashes';

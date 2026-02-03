@@ -78,9 +78,11 @@ if (!window.vtMessageListenerInitialized) {
           });
         } else {
           // Multiple hashes → send to background to open results.html
-          console.log(`Processing ${validHashes.length} hashes`);
-          showNotification(`Fetching ${validHashes.length} hashes from VirusTotal...`, "info");
-          chrome.runtime.sendMessage({ action: "fetchMultipleHashes", hashes: validHashes }, (response) => {
+          const uniqueValid = Array.from(new Set(validHashes.map(h => h.toLowerCase())));
+          const dedupCount = validHashes.length - uniqueValid.length;
+          console.log(`Processing ${uniqueValid.length} unique hashes`);
+          showNotification(`Fetching ${uniqueValid.length} hashes from VirusTotal${dedupCount > 0 ? ` (${dedupCount} duplicates skipped)` : ''}...`, "info");
+          chrome.runtime.sendMessage({ action: "fetchMultipleHashes", hashes: uniqueValid }, (response) => {
             isProcessing = false;
             if (!response || !response.success) {
               console.error("Failed to fetch multiple hashes:", response?.error);
