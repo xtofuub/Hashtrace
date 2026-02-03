@@ -12,6 +12,9 @@ Quickly fetch and analyze MD5, SHA-1, and SHA-256 hashes from VirusTotal, with b
 - 📋 **Bulk Hash Lookup** – Paste multiple hashes via the extension popup
 - 📊 **Results Dashboard** – Clean, organized page 
 - 💾 **Export Options** – Copy hashes or export results as JSON or CSV
+- 🖱️ **Click‑to‑Copy Hashes** – Click any displayed MD5/SHA1/SHA256 to copy instantly 
+- ♻️ **Duplicate Handling** – Automatically removes identical inputs and merges MD5/SHA1/SHA256 for the same file into a single result card
+
 
 
 ## Installation
