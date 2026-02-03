@@ -5,14 +5,12 @@
 Quickly fetch and analyze MD5, SHA-1, and SHA-256 hashes from VirusTotal, with both single and bulk input methods, all in a sleek, user-friendly interface.
 
 ## Features
+- ✨ **Single Hash Lookup** – Highlight any hash on a webpage and press `Ctrl+Shift+X`
+- 🔍 **Smart Detection** – Even if you highlight other text (or the whole page), HashTrace will automatically detect and extract valid hashes
+- 📋 **Bulk Hash Lookup** – Paste multiple hashes via the extension popup
+- 📊 **Results Dashboard** – Clean, organized page 
+- 💾 **Export Options** – Copy hashes or export results as JSON or CSV
 
-✨ **Single Hash Lookup** – Highlight any hash on a webpage and press `Ctrl+Shift+X`
-
-📋 **Bulk Hash Lookup** – Paste multiple hashes via the extension popup
-
-📊 **Results Dashboard** – Clean, organized page 
-
-💾 **Export Options** – Copy hashes or export results as JSON or CSV
 
 ## Installation
 
