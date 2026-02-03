@@ -16,12 +16,13 @@ Quickly fetch and analyze MD5, SHA-1, and SHA-256 hashes from VirusTotal, with b
 
 ## Installation
 
-1. Extract the zip file to a folder
-2. Open Chrome and go to `chrome://extensions/` 
-3. Enable **Developer mode** (toggle in top right)
-4. Click **Load unpacked** and select the extracted folder
-5. Click the extension icon → Options
-6. Enter your VirusTotal API key and save
+1. Go to the [HashTrace Releases Page](https://github.com/xtofuub/Hashtrace/releases) and download the latest zip file.  
+2. Extract the zip file to a folder.  
+3. Open Chrome/Brave and go to `chrome://extensions/`  
+4. Enable **Developer mode** (toggle in top right).  
+5. Click **Load unpacked** and select the extracted folder.  
+6. Click the extension icon → **Options**.  
+7. Enter your VirusTotal API key and save.
 
 ## Get Your API Key
 
