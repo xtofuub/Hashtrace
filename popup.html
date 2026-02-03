@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>VirusTotal</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body {
+      width: 460px;
+      padding: 24px;
+    }
+    
+    .logo-container {
+      margin-bottom: 20px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--accent-primary);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      display: none;
+    }
+    
+    .status.error {
+      background: rgba(255, 23, 68, 0.1);
+      color: var(--error);
+      border: 1px solid rgba(255, 23, 68, 0.2);
+    }
+    
+    .status.success {
+      background: rgba(0, 230, 118, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(0, 230, 118, 0.2);
+    }
+    
+    .status.info {
+      background: rgba(45, 225, 252, 0.1);
+      color: var(--accent-primary);
+      border: 1px solid rgba(45, 225, 252, 0.2);
+    }
+
+    .footer-link {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 12px;
+    }
+    
+    .footer-link a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-link a:hover {
+      color: var(--accent-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="animate-fade-in">
+    <div class="header flex-between logo-container">
+      <div class="flex-center gap-md">
+        <div class="logo-icon">HT</div>
+        <div>
+          <h2 class="text-gradient">HashTrace</h2>
+          <p style="margin: 0; font-size: 12px; opacity: 0.7;">Threat Intelligence</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <textarea id="hashInput" placeholder="Enter MD5, SHA-1, or SHA-256 hashes (one per line)" style="height: 180px; resize: none;"></textarea>
+    </div>
+
+    <div class="flex-between gap-md">
+      <button id="clearBtn" class="btn btn-secondary" style="flex: 1;">Clear</button>
+      <button id="fetchBtn" class="btn btn-primary" style="flex: 2;">
+        Analyze Hashes
+      </button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="footer-link">
+      <a href="#" id="settingsLink">Configure API Key</a>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>VirusTotal Results</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body {
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header-stats-container {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .stats-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+    }
+
+    /* Chart Styles */
+    .chart-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin: 0 auto;
+    }
+
+    .chart-donut {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--error) 0% var(--p-malicious), 
+        var(--success) var(--p-malicious) var(--p-clean), 
+        var(--bg-elevated) var(--p-clean) 100%
+      );
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .chart-donut::before {
+      content: '';
+      position: absolute;
+      width: 80%;
+      height: 80%;
+      background: var(--bg-card);
+      border-radius: 50%;
+    }
+
+    .chart-text {
+      position: absolute;
+      text-align: center;
+      z-index: 1;
+    }
+
+    .chart-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: block;
+    }
+
+    .chart-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Result Cards Override */
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .hash-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-elevated);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    
+    .hash-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 10px;
+      color: var(--text-secondary);
+    }
+
+    .copy-btn {
+      color: var(--accent-primary);
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .copy-btn:hover {
+      opacity: 1;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-malicious {
+      background: rgba(255, 23, 68, 0.15);
+      color: var(--error);
+      border: 1px solid rgba(255, 23, 68, 0.3);
+      box-shadow: 0 0 10px rgba(255, 23, 68, 0.1);
+    }
+
+    .badge-clean {
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.1);
+    }
+    
+    .bulk-actions {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-stats-container">
+    <div class="card stats-card animate-fade-in">
+      <h1 class="text-gradient" style="font-size: 32px; margin-bottom: 8px;">Analysis Results</h1>
+      <p>Detailed report of fetched hashes from VirusTotal.</p>
+      
+      <div id="stats-text" style="margin-top: 20px;">
+        <!-- Injected via JS -->
+      </div>
+      
+      <div id="bulkActions" class="bulk-actions" style="margin-top: auto; display: none;">
+        <button id="downloadJson" class="btn btn-secondary">Download JSON</button>
+        <button id="downloadCsv" class="btn btn-secondary">Download CSV</button>
+      </div>
+    </div>
+
+    <div class="card flex-center animate-fade-in" style="animation-delay: 100ms;">
+      <div id="chart-placeholder" class="chart-container">
+        <!-- Chart injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <div id="loading" class="flex-center" style="height: 200px;">
+    <div style="text-align: center;">
+      <div style="font-size: 24px; margin-bottom: 10px;">⚡</div>
+      <p>Analyzing hashes...</p>
+    </div>
+  </div>
+
+  <div id="results" class="result-grid">
+    <!-- Results injected here -->
+  </div>
+
+  <!-- Hidden stats div for compatibility if JS expects it -->
+  <div id="stats" style="display: none;"></div>
+
+  <script src="results.js"></script>
+</body>
+</html>
