@@ -12,29 +12,28 @@ chrome.commands.onCommand.addListener((command) => {
 
   if (command === "fetch-hashes") {
     console.log("Fetching hashes triggered by keyboard shortcut");
-    
+
     // Get active tab in current window
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs[0]) {
         console.warn("No active tab found");
         return;
       }
-      
+
       console.log("Active tab found:", tabs[0].id, tabs[0].url);
-      
+
       // Send message to content script
       chrome.tabs.sendMessage(tabs[0].id, { action: "fetchHashes" }, (response) => {
         if (chrome.runtime.lastError) {
           console.error("Error sending message to content script:", chrome.runtime.lastError);
           console.log("Attempting to inject content script...");
-          
+
           // Try to inject content script if it's not loaded
           chrome.scripting.executeScript({
             target: { tabId: tabs[0].id },
             files: ['content.js']
           }).then(() => {
             console.log("Content script injected successfully");
-            // Retry sending the message
             setTimeout(() => {
               chrome.tabs.sendMessage(tabs[0].id, { action: "fetchHashes" });
             }, 500);
@@ -65,7 +64,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.error("Error fetching single hash:", error);
         sendResponse({ success: false, error: error.message });
       });
-    return true; // Keep message channel open for async
+    return true;
   }
 
   // Fetch multiple hashes and open results.html
@@ -79,9 +78,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     fetchMultipleHashes(unique)
       .then(results => {
         console.log("Multiple hashes fetched successfully");
-        const resultsData = encodeURIComponent(JSON.stringify(results));
-        chrome.tabs.create({
-          url: chrome.runtime.getURL(`results.html?data=${resultsData}&dedup=${dedupCount}`)
+        // Use storage.local — enriched relation data can be 50-150KB,
+        // which URL encoding silently corrupts causing blank results pages
+        const storageKey = `hashtrace_results_${Date.now()}`;
+        chrome.storage.local.set({ [storageKey]: { results, dedupCount } }, () => {
+          chrome.tabs.create({
+            url: chrome.runtime.getURL(`results.html?key=${storageKey}`)
+          });
         });
         sendResponse({ success: true });
       })
@@ -90,7 +93,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: false, error: error.message });
       });
 
-    return true; // Keep message channel open for async
+    return true;
   }
 });
 
@@ -106,7 +109,7 @@ async function fetchHashesFromVT(hash) {
   }
 
   console.log("Using API key:", apiKey.substring(0, 10) + "...");
-  
+
   const response = await fetch(`https://www.virustotal.com/api/v3/files/${hash}`, {
     method: 'GET',
     headers: { 'x-apikey': apiKey }
@@ -122,9 +125,7 @@ async function fetchHashesFromVT(hash) {
   const data = await response.json();
   const attributes = data.data.attributes;
 
-  console.log("Hash data retrieved successfully");
-  
-  return {
+  const fileResult = {
     md5: attributes.md5,
     sha1: attributes.sha1,
     sha256: attributes.sha256,
@@ -132,8 +133,107 @@ async function fetchHashesFromVT(hash) {
     meaningful_name: attributes.meaningful_name,
     size: attributes.size,
     type_description: attributes.type_description,
-    last_analysis_stats: attributes.last_analysis_stats
+    last_analysis_stats: attributes.last_analysis_stats,
+    relations: {
+      // Behavioral / dynamic (observed at runtime)
+      ips: [],
+      domains: [],
+      contacted_urls: [],
+      dropped: [],
+      // Static strings extracted from the file body
+      embedded_domains: [],
+      embedded_ips: [],
+      embedded_urls: [],
+      // Where this file has been seen distributed in the wild
+      itw_urls: [],
+      // Files that contain or executed this file (parents)
+      parents: [],
+      overlay_parents: [],
+      email_parents: [],
+      // Files contained within this file (children)
+      bundles: [],
+      pe_children: [],
+    }
   };
+
+  // Fetch every relation type via dedicated endpoints.
+  // The ?relationships= inline expansion is unreliable and capped —
+  // dedicated endpoints match what the VT GUI Relations tab actually shows.
+  console.log("Fetching all relations via dedicated endpoints...");
+  try {
+    // These return full file objects with meaningful_name and analysis stats
+    const fileRelTargets = [
+      { endpoint: 'execution_parents', key: 'parents' },
+      { endpoint: 'compressed_parents', key: 'parents' },
+      { endpoint: 'pe_resource_parents', key: 'parents' },
+      { endpoint: 'overlay_parents', key: 'overlay_parents' },
+      { endpoint: 'email_parents', key: 'email_parents' },
+      { endpoint: 'bundled_files', key: 'bundles' },
+      { endpoint: 'dropped_files', key: 'dropped' },
+      { endpoint: 'pe_resource_children', key: 'pe_children' },
+    ];
+
+    // These return infrastructure nodes (ip_address, domain, url)
+    const infraRelTargets = [
+      { endpoint: 'contacted_ips', key: 'ips' },
+      { endpoint: 'contacted_domains', key: 'domains' },
+      { endpoint: 'contacted_urls', key: 'contacted_urls' },
+      { endpoint: 'embedded_domains', key: 'embedded_domains' },
+      { endpoint: 'embedded_ips', key: 'embedded_ips' },
+      { endpoint: 'embedded_urls', key: 'embedded_urls' },
+      { endpoint: 'itw_urls', key: 'itw_urls' },
+    ];
+
+    const allTargets = [...fileRelTargets, ...infraRelTargets];
+
+    for (const target of allTargets) {
+      const relUrl = `https://www.virustotal.com/api/v3/files/${hash}/${target.endpoint}`;
+      const relResponse = await fetch(relUrl, {
+        method: 'GET',
+        headers: { 'x-apikey': apiKey }
+      });
+
+      if (relResponse.ok) {
+        const relData = await relResponse.json();
+        const fetchedItems = relData.data || [];
+        console.log(`${target.endpoint}: ${fetchedItems.length} items`);
+
+        if (fetchedItems.length > 0) {
+          const isFileRel = fileRelTargets.some(t => t.endpoint === target.endpoint);
+          if (isFileRel) {
+            // Merge by id — multiple parent endpoints can overlap
+            fetchedItems.forEach(item => {
+              const existing = fileResult.relations[target.key].find(e => e.id === item.id);
+              if (existing) {
+                existing.attributes = item.attributes;
+              } else {
+                fileResult.relations[target.key].push({
+                  id: item.id,
+                  type: item.type,
+                  attributes: item.attributes || null
+                });
+              }
+            });
+          } else {
+            // Infrastructure: overwrite with dedicated endpoint data
+            fileResult.relations[target.key] = fetchedItems.map(item => ({
+              id: item.id,
+              type: item.type,
+              attributes: item.attributes || null
+            }));
+          }
+        }
+      } else if (relResponse.status !== 404) {
+        console.warn(`${target.endpoint}: status ${relResponse.status}`);
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+  } catch (e) {
+    console.error("Relationship enrichment error:", e.message);
+  }
+
+  return fileResult;
 }
 
 // Fetch multiple hashes sequentially to avoid rate limiting
@@ -147,7 +247,6 @@ async function fetchMultipleHashes(hashes) {
       const data = await fetchHashesFromVT(hash);
       results.push({ hash, success: true, data });
       console.log(`Successfully fetched hash: ${hash}`);
-      // Small delay to respect VirusTotal rate limits
       await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
       console.error(`Failed to fetch hash ${hash}:`, error.message);
